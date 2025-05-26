@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz: Cuidado com Fake News!</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(to right, #f9d423, #ff4e50);
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 15px;
+      background-color: #ff4e50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="start">
+    <h2>Bem-vindo ao Quiz contra as Fake News!</h2>
+    <p>Digite seu nome para começar:</p>
+    <input type="text" id="username" placeholder="Seu nome">
+    <button onclick="startQuiz()">Começar</button>
+  </div>  <div id="quiz" class="hidden">
+    <h2 id="question"></h2>
+    <div id="options"></div>
+    <div id="textAnswerContainer" class="hidden">
+      <textarea id="textAnswer" placeholder="Escreva sua resposta..."></textarea>
+    </div>
+    <p id="explanation" style="margin-top: 10px;"></p>
+    <button onclick="nextQuestion()">Próxima</button>
+  </div>  <div id="result" class="hidden">
+    <h2>Parabéns, <span id="finalName"></span>!</h2>
+    <p>Você acertou <span id="score"></span> de <span id="total"></span> perguntas!</p>
+    <canvas id="resultChart" width="300" height="300"></canvas>
+    <p style="margin-top: 20px; font-weight: bold; color: green">Continue sendo um defensor da verdade! Você é incrível!</p>
+  </div>
+</div><script>
+const questions = [
+  {
+    text: "Qual das opções abaixo é um sinal de uma fake news?",
+    type: "multiple",
+    options: [
+      "Fonte confiável e verificada",
+      "Título sensacionalista e sem fonte",
+      "Reportagem de um site oficial",
+      "Informações confirmadas por especialistas"
+    ],
+    correct: 1,
+    explanation: "Títulos sensacionalistas sem fontes confiáveis são indícios clássicos de fake news."
+  },
+  {
+    text: "Como você pode ajudar a combater as fake news? (resposta dissertativa)",
+    type: "text",
+    correctKeywords: ["verificar", "pesquisar", "checar"],
+    explanation: "Verificar informações antes de compartilhar é uma atitude cidadã e essencial."
+  },
+  // Adicione mais perguntas aqui...
+];
+
+let currentQuestion = 0;
+let score = 0;
+let userName = "";
+
+function startQuiz() {
+  userName = document.getElementById("username").value.trim();
+  if (userName === "") return alert("Digite seu nome.");
+  document.getElementById("start").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const question = questions[currentQuestion];
+  document.getElementById("question").innerText = question.text;
+  const optionsDiv = document.getElementById("options");
+  const textAnswerContainer = document.getElementById("textAnswerContainer");
+  optionsDiv.innerHTML = "";
+  document.getElementById("explanation").innerText = "";
+
+  if (question.type === "multiple") {
+    question.options.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.innerText = opt;
+      btn.onclick = () => {
+        if (idx === question.correct) score++;
+        document.getElementById("explanation").innerText = question.explanation;
+        disableOptions();
+      };
+      optionsDiv.appendChild(btn);
+    });
+    textAnswerContainer.classList.add("hidden");
+  } else {
+    textAnswerContainer.classList.remove("hidden");
+  }
+}
+
+function disableOptions() {
+  const buttons = document.querySelectorAll("#options button");
+  buttons.forEach(btn => btn.disabled = true);
+}
+
+function nextQuestion() {
+  if (questions[currentQuestion].type === "text") {
+    const answer = document.getElementById("textAnswer").value.toLowerCase();
+    const keywords = questions[currentQuestion].correctKeywords;
+    if (keywords.some(k => answer.includes(k))) score++;
+    document.getElementById("explanation").innerText = questions[currentQuestion].explanation;
+  }
+
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    loadQuestion();
+  } else {
+    endQuiz();
+  }
+}
+
+function endQuiz() {
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("finalName").innerText = userName;
+  document.getElementById("score").innerText = score;
+  document.getElementById("total").innerText = questions.length;
+  generateChart();
+}
+
+function generateChart() {
+  const ctx = document.getElementById('resultChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Acertos', 'Erros'],
+      datasets: [{
+        data: [score, questions.length - score],
+        backgroundColor: ['#36A2EB', '#FF6384'],
+      }]
+    }
+  });
+}
+</script></body>
+</html>
